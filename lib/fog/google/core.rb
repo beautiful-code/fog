@@ -160,13 +160,24 @@ module Fog
       # @param [Google::APIClient::Method] api_method The method object or the RPC name of the method being executed
       # @param [Hash] parameters The parameters to send to the method
       # @param [Hash] body_object The body object of the request
+      # @param [Google::API::UploaderIO] object of the request
       # @return [Excon::Response] The result from the API
-      def request(api_method, parameters, body_object = nil)
+      def request(api_method, parameters, body_object = nil, file = nil)
         client_parms = {
           :api_method => api_method,
           :parameters => parameters,
+          :headers => {}
         }
+
         client_parms[:body_object] = body_object if body_object
+
+        if file.present? && file.io.present?
+          client_parms[:body] = file.io
+          client_parms[:headers] = {
+            "Content-Length" => Fog::Storage.get_body_size(file.io).to_s,
+            "Content-Type" => Fog::Storage.get_content_type(file.io)
+          }
+        end
 
         result = @client.execute(client_parms)
 
