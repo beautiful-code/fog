@@ -169,13 +169,13 @@ module Fog
           :headers => {}
         }
 
-        client_parms[:body_object] = body_object if body_object
-
         if file.present? && file.io.present?
+          content_type = Fog::Storage.get_content_type(file.io)
           client_parms[:body] = file.io
           client_parms[:headers] = {
             "Content-Length" => Fog::Storage.get_body_size(file.io).to_s,
-            "Content-Type" => Fog::Storage.get_content_type(file.io)
+            # content-type => text/csv => Parse Error with the google-api-client
+            "Content-Type" => (content_type == 'text/csv' ? 'application/vnd.ms-excel' : content_type)
           }
         end
 
